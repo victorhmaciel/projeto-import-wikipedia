@@ -1,0 +1,47 @@
+# pyright: reportMissingModuleSource=false
+# pyright: reportMissingImports=false
+
+try:
+	import pandas as pd  
+	import numpy as np  
+except ModuleNotFoundError as exc:
+	raise SystemExit(
+		"Instale as dependências com: "
+		"python -m pip install pandas numpy lxml html5lib"
+	) from exc
+
+
+url = "https://web.archive.org/web/20230902185326/https://en.wikipedia.org/wiki/List_of_countries_by_GDP_%28nominal%29"
+
+
+tables = pd.read_html(url, match="Country/Territory")
+df = tables[0]
+
+
+df = df.iloc[:, [0, 2]]
+
+
+df.columns = ['Country', 'GDP (Million USD)']
+
+
+df = df[df['GDP (Million USD)'] != '—']
+df['GDP (Million USD)'] = df['GDP (Million USD)'].str.replace(',', '', regex=True)
+df = df.dropna(subset=['GDP (Million USD)'])
+
+
+
+
+
+df['GDP (Million USD)'] = df['GDP (Million USD)'].astype(int)
+
+df['GDP (Million USD)'] = df['GDP (Million USD)'] / 1000
+
+df['GDP (Million USD)'] = np.round(df['GDP (Million USD)'], 2)
+
+df = df.rename(columns={'GDP (Million USD)': 'GDP (Billion USD)'})
+
+
+
+df.to_csv("Largest_economies.csv", index=False)
+
+print("Web Scraping e processamento concluídos! O arquivo 'Largest_economies.csv' foi salvo com sucesso.")
